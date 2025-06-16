@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
-	"github.com/ahmaruff/go-fleet/internal/game"
 	"log"
 	"net"
 	"strings"
+
+	"github.com/ahmaruff/go-fleet/internal/display"
+	"github.com/ahmaruff/go-fleet/internal/game"
 )
 
 var players = make(map[net.Conn]*game.Player)
@@ -28,6 +31,30 @@ func getCurrentPlayerShips(g *game.Game, conn net.Conn) int {
 		return g.Player1.Board.ShipCount
 	}
 	return g.Player2.Board.ShipCount
+}
+
+// Function to capture display output for a specific player
+func captureDisplayForPlayer(gameInstance *game.Game, playerConn net.Conn) string {
+	// Find which player this connection represents
+	connections := games[gameInstance]
+	isPlayer1 := connections[0] == playerConn
+
+	// Create a version of the game from this player's perspective
+	var playerGame *game.Game
+	if isPlayer1 {
+		// Player 1's perspective - they are "Player1" in the game
+		playerGame = gameInstance
+	} else {
+		// Player 2's perspective - swap players so they see themselves as "Player1"
+		playerGame = &game.Game{
+			Player1:    gameInstance.Player2, // They see themselves as Player1
+			Player2:    gameInstance.Player1, // Opponent as Player2
+			CurrPlayer: gameInstance.CurrPlayer,
+			Phase:      gameInstance.Phase,
+		}
+	}
+
+	return display.RenderGameAsString(playerGame)
 }
 
 func main() {
