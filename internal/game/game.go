@@ -23,15 +23,7 @@ func NewGame(p1, p2 *Player) *Game {
 	return &g
 }
 
-func (g *Game) PlaceShipForPlayer(cell string) bool {
-	var p *Player
-
-	if g.CurrPlayer == 1 {
-		p = g.Player1
-	} else {
-		p = g.Player2
-	}
-
+func (g *Game) PlaceShipForPlayer(p *Player, cell string) bool {
 	row, col := ConvertCell(cell)
 	res := p.Board.PlaceShip(row, col)
 

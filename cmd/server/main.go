@@ -13,6 +13,23 @@ var players = make(map[net.Conn]*game.Player)
 var games = make(map[*game.Game][2]net.Conn)
 var waitingPlayer net.Conn
 
+func findGameByConnection(conn net.Conn) *game.Game {
+	for gameInstance, connections := range games {
+		if connections[0] == conn || connections[1] == conn {
+			return gameInstance
+		}
+	}
+	return nil
+}
+
+func getCurrentPlayerShips(g *game.Game, conn net.Conn) int {
+	connections := games[g]
+	if connections[0] == conn {
+		return g.Player1.Board.ShipCount
+	}
+	return g.Player2.Board.ShipCount
+}
+
 func main() {
 	// Command line flag for port
 	port := flag.String("port", "8080", "Port to listen on")
@@ -126,9 +143,34 @@ func handleCommand(conn net.Conn, command string) string {
 			return "[ERROR] - Usage: /set A1"
 		}
 
-		coordinate := parts[1]
+		currentGame := findGameByConnection(conn)
 
-		return "[SHIP_PLACED] - Ship placed at " + coordinate
+		if currentGame == nil {
+			return "[ERROR] - You're not in a game. Use /ready first"
+		}
+
+		if currentGame.Phase != "PLACING" {
+			return "[ERROR] - Not in placement phase"
+		}
+
+		player := players[conn]
+		coordinate := parts[1]
+		success := currentGame.PlaceShipForPlayer(player, coordinate)
+
+		if !success {
+			return "[ERROR] - Cannot place ship at " + coordinate
+		}
+
+		response := fmt.Sprintf("[SHIP_PLACED] - Ship placed at %s (%d/5)", coordinate, getCurrentPlayerShips(currentGame, conn))
+
+		if currentGame.Phase == "PLAYING" {
+			// Both players have 5 ships, game started!
+			connections := games[currentGame]
+			connections[0].Write([]byte("[COMBAT_START] - All ships placed! Combat phase begins!\n"))
+			connections[1].Write([]byte("[COMBAT_START] - All ships placed! Combat phase begins!\n"))
+		}
+
+		return response
 	case "/fire":
 		if len(parts) < 2 {
 			return "[ERROR] - Usage: /fire A1"
