@@ -16,19 +16,19 @@ func main() {
 	flag.Parse()
 
 	address := *host + ":" + *port
-	fmt.Printf("Connecting to Go-Fleet Server at %s...\n", address)
+	fmt.Printf("[INFO] - Connecting to Go-Fleet Server at %s...\n", address)
 
 	// Connect to server
 	conn, err := net.Dial("tcp", address)
 	if err != nil {
-		log.Fatal("Failed to connect to server:", err)
+		log.Fatal("[ERROR] - Failed to connect to server:", err)
 	}
 	defer conn.Close()
 
-	fmt.Println("Connected!")
+	fmt.Println("[INFO] - Connected!")
 
 	// Ask for player name
-	fmt.Print("Enter your name: ")
+	fmt.Print(">> Please enter your name: ")
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
 	playerName := scanner.Text()
@@ -36,13 +36,13 @@ func main() {
 	// Send name to server
 	_, err = conn.Write([]byte("/name " + playerName + "\n"))
 	if err != nil {
-		log.Fatal("Failed to send name:", err)
+		log.Fatal("[ERROR] - Failed to send name:", err)
 	}
 
 	// Start listening for server messages
 	go listenForMessages(conn)
 
-	fmt.Println("Type commands (/ready, /set A1, /fire B2) or 'quit' to exit:")
+	fmt.Println(">> Type commands (/ready, /set A1, /fire B2) or 'quit' to exit:")
 
 	// Continue with existing input loop...
 	for scanner.Scan() {
@@ -54,7 +54,7 @@ func main() {
 
 		_, err := conn.Write([]byte(message + "\n"))
 		if err != nil {
-			log.Println("Failed to send message:", err)
+			log.Println("[ERROR] - Failed to send message:", err)
 			break
 		}
 	}
@@ -65,10 +65,10 @@ func listenForMessages(conn net.Conn) {
 	for {
 		n, err := conn.Read(buffer)
 		if err != nil {
-			fmt.Println("Disconnected from server")
+			fmt.Println("[INFO] - Disconnected from server")
 			return
 		}
 
-		fmt.Printf("Server: %s", string(buffer[:n]))
+		fmt.Printf("[INFO] - Server: %s", string(buffer[:n]))
 	}
 }
