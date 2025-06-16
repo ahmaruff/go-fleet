@@ -176,9 +176,51 @@ func handleCommand(conn net.Conn, command string) string {
 			return "[ERROR] - Usage: /fire A1"
 		}
 
+		currentGame := findGameByConnection(conn)
+		if currentGame == nil {
+			return "[ERROR] - You're not in a game"
+		}
+
+		if currentGame.Phase != "PLAYING" {
+			return "[ERROR] - Not in combat phase"
+		}
+
+		player := players[conn]
 		coordinate := parts[1]
 
-		return "[SHOT_RESULT] - Fired at " + coordinate + " - MISS"
+		result := currentGame.FireAtOpponent(player, coordinate)
+
+		fireMsg := map[int]string{
+			3: "HIT",
+			2: "MISS",
+		}
+
+		resultMsg := fireMsg[result]
+
+		response := fmt.Sprintf("[SHOT_RESULT] - %s at %s", resultMsg, coordinate)
+
+		// Check if game is over
+		winner, gameOver := currentGame.IsGameOver()
+		if gameOver {
+			connections := games[currentGame]
+			winnerName := ""
+			if winner == 1 {
+				winnerName = currentGame.Player1.Name
+			} else {
+				winnerName = currentGame.Player2.Name
+			}
+
+			connections[0].Write([]byte("======================================\n"))
+			connections[0].Write([]byte("[GAME_OVER] - " + winnerName + " wins!\n"))
+			connections[0].Write([]byte("======================================\n"))
+
+			connections[1].Write([]byte("======================================\n"))
+			connections[1].Write([]byte("[GAME_OVER] - " + winnerName + " wins!\n"))
+			connections[1].Write([]byte("======================================\n"))
+		}
+
+		return response
+
 	default:
 		return "[ERROR] - Unknown command"
 	}

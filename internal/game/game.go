@@ -34,10 +34,10 @@ func (g *Game) PlaceShipForPlayer(p *Player, cell string) bool {
 	return res
 }
 
-func (g *Game) FireAtOpponent(cell string) int {
+func (g *Game) FireAtOpponent(firingPlayer *Player, cell string) int {
 	var opponent *Player
 
-	if g.CurrPlayer == 1 {
+	if firingPlayer == g.Player1 {
 		opponent = g.Player2
 	} else {
 		opponent = g.Player1

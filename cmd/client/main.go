@@ -69,6 +69,6 @@ func listenForMessages(conn net.Conn) {
 			return
 		}
 
-		fmt.Printf("<SERVER> %s", string(buffer[:n]))
+		fmt.Printf("<> %s", string(buffer[:n]))
 	}
 }
