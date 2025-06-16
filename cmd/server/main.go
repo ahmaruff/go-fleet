@@ -10,6 +10,8 @@ import (
 )
 
 var players = make(map[net.Conn]*game.Player)
+var games = make(map[*game.Game][2]net.Conn)
+var waitingPlayer net.Conn
 
 func main() {
 	// Command line flag for port
@@ -86,7 +88,39 @@ func handleCommand(conn net.Conn, command string) string {
 
 		return "NAME_SET - Welcome " + playerName + "!"
 	case "/ready":
-		return "READY_ACK - Waiting for opponent..."
+		player := players[conn]
+
+		if player == nil {
+			return "ERROR - Please set your name first with /name"
+		}
+
+		if waitingPlayer == nil {
+			// First player waiting
+			waitingPlayer = conn
+			return "WAITING - Looking for opponent..."
+		} else {
+			p1 := players[waitingPlayer]
+			p2 := players[conn]
+
+			newGame := game.Game{
+				Player1:    p1,
+				Player2:    p2,
+				CurrPlayer: 1,
+				Phase:      "PLACING",
+			}
+
+			games[&newGame] = [2]net.Conn{waitingPlayer, conn}
+
+			// Notify both players
+			waitingPlayer.Write([]byte("GAME_START - Match found! vs " + p2.Name + "\n"))
+			conn.Write([]byte("GAME_START - Match found! vs " + p1.Name + "\n"))
+
+			// Reset waiting player
+			waitingPlayer = nil
+
+			return ""
+		}
+
 	case "/set":
 		if len(parts) < 2 {
 			return "ERROR - Usage: /set A1"
