@@ -37,5 +37,10 @@ func ConvertCell(cell string) (int, int) {
 	// karena baris dimulai dari 1, sedangkan index array dari 0
 	row--
 
+	// Validate range
+	if row < 0 || row > 9 || col < 0 || col > 9 {
+		return -1, -1 // Invalid coordinate
+	}
+
 	return row, col
 }

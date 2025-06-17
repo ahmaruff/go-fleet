@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -61,14 +62,39 @@ func main() {
 }
 
 func listenForMessages(conn net.Conn) {
-	buffer := make([]byte, 1024)
-	for {
-		n, err := conn.Read(buffer)
-		if err != nil {
-			fmt.Println("[INFO] - Disconnected from server")
-			return
+	scanner := bufio.NewScanner(conn)
+
+	var displayBuffer strings.Builder
+
+	inDisplayMode := false
+
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		if line == "DISPLAY_UPDATE" {
+			inDisplayMode = true
+
+			displayBuffer.Reset()
+			continue
 		}
 
-		fmt.Printf("# %s", string(buffer[:n]))
+		if line == "END_DISPLAY" {
+			inDisplayMode = false
+
+			// Clear screen and show the game board
+			fmt.Print("\033[2J\033[H") // Clear screen
+			fmt.Print(displayBuffer.String())
+			fmt.Print("\nEnter command: ")
+			continue
+		}
+
+		if inDisplayMode {
+			displayBuffer.WriteString(line + "\n")
+			continue
+		}
+
+		// Regular server messages
+		fmt.Printf("\n# %s\n", line)
+		fmt.Print("Enter command: ")
 	}
 }

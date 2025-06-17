@@ -49,7 +49,7 @@ func RenderGame(g *game.Game) {
 
 	// Board headers
 	fmt.Println("Your Board:                               Opponent's Board:")
-	fmt.Println("   A B C D E F G H I J                        A B C D E F G H I J")
+	fmt.Println("     A B C D E F G H I J                        A B C D E F G H I J")
 
 	// Render both boards side by side
 	for row := 0; row < 10; row++ {
@@ -89,7 +89,7 @@ func RenderGameAsString(g *game.Game) string {
 
 	// Board headers
 	output.WriteString("Your Board:                               Opponent's Board:")
-	output.WriteString("   A B C D E F G H I J                        A B C D E F G H I J")
+	output.WriteString("     A B C D E F G H I J                        A B C D E F G H I J\n")
 
 	// Render both boards side by side
 	for row := 0; row < 10; row++ {

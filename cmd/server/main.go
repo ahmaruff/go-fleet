@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"log"
@@ -188,6 +187,10 @@ func handleCommand(conn net.Conn, command string) string {
 			return "[ERROR] - Cannot place ship at " + coordinate
 		}
 
+		// Send display update to the player who placed the ship
+		displayOutput := captureDisplayForPlayer(currentGame, conn)
+		conn.Write([]byte("DISPLAY_UPDATE\n" + displayOutput + "END_DISPLAY\n"))
+
 		response := fmt.Sprintf("[SHIP_PLACED] - Ship placed at %s (%d/5)", coordinate, getCurrentPlayerShips(currentGame, conn))
 
 		if currentGame.Phase == "PLAYING" {
@@ -195,6 +198,12 @@ func handleCommand(conn net.Conn, command string) string {
 			connections := games[currentGame]
 			connections[0].Write([]byte("[COMBAT_START] - All ships placed! Combat phase begins!\n"))
 			connections[1].Write([]byte("[COMBAT_START] - All ships placed! Combat phase begins!\n"))
+
+			// Send display update to both players when combat starts
+			display1 := captureDisplayForPlayer(currentGame, connections[0])
+			display2 := captureDisplayForPlayer(currentGame, connections[1])
+			connections[0].Write([]byte("DISPLAY_UPDATE\n" + display1 + "END_DISPLAY\n"))
+			connections[1].Write([]byte("DISPLAY_UPDATE\n" + display2 + "END_DISPLAY\n"))
 		}
 
 		return response
@@ -225,6 +234,12 @@ func handleCommand(conn net.Conn, command string) string {
 		resultMsg := fireMsg[result]
 
 		response := fmt.Sprintf("[SHOT_RESULT] - %s at %s", resultMsg, coordinate)
+
+		connections := games[currentGame]
+		display1 := captureDisplayForPlayer(currentGame, connections[0])
+		display2 := captureDisplayForPlayer(currentGame, connections[1])
+		connections[0].Write([]byte("DISPLAY_UPDATE\n" + display1 + "END_DISPLAY\n"))
+		connections[1].Write([]byte("DISPLAY_UPDATE\n" + display2 + "END_DISPLAY\n"))
 
 		// Check if game is over
 		winner, gameOver := currentGame.IsGameOver()

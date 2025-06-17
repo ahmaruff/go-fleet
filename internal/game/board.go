@@ -13,6 +13,10 @@ type Board struct {
 }
 
 func (b *Board) PlaceShip(row, col int) bool {
+	if row < 0 || col < 0 || row > 9 || col > 9 {
+		return false // Invalid coordinates
+	}
+
 	if b.ShipCount >= 5 {
 		return false
 	}
