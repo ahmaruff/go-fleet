@@ -42,24 +42,16 @@ func main() {
 		log.Fatal("[ERROR] - Failed to send name:", err)
 	}
 
+	fmt.Println(">> Type commands (/ready, /set A1, /fire B2) or 'quit' to exit:")
+
 	// Start listening for server messages
 	go listenForMessages(conn)
-
-	fmt.Println(">> Type commands (/ready, /set A1, /fire B2) or 'quit' to exit:")
 
 	// Continue with existing input loop...
 	for scanner.Scan() {
 		message := scanner.Text()
 
-		if message == "quit" {
-			break
-		}
-
-		if message == "/quit" {
-			break
-		}
-
-		if message == "/exit" {
+		if message == "quit" || message == "/quit" || message == "/exit" {
 			break
 		}
 		_, err := conn.Write([]byte(message + "\n"))
@@ -72,9 +64,7 @@ func main() {
 
 func listenForMessages(conn net.Conn) {
 	scanner := bufio.NewScanner(conn)
-
 	var displayBuffer strings.Builder
-
 	inDisplayMode := false
 
 	for scanner.Scan() {
@@ -82,7 +72,6 @@ func listenForMessages(conn net.Conn) {
 
 		if line == "DISPLAY_UPDATE" {
 			inDisplayMode = true
-
 			displayBuffer.Reset()
 			continue
 		}
@@ -90,10 +79,8 @@ func listenForMessages(conn net.Conn) {
 		if line == "END_DISPLAY" {
 			inDisplayMode = false
 
-			// Clear screen and show the game board
 			display.ClearScreen()
 			fmt.Print(displayBuffer.String())
-			fmt.Print("\nEnter command: ")
 			continue
 		}
 
@@ -102,10 +89,7 @@ func listenForMessages(conn net.Conn) {
 			continue
 		}
 
-		// Regular server messages
-
-		display.ClearScreen()
-		fmt.Printf("\n# %s\n", line)
-		fmt.Print("Enter command: ")
+		// Regular server messages - NO screen clearing
+		fmt.Printf("%s\n", line)
 	}
 }

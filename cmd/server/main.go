@@ -161,18 +161,18 @@ func handleCommand(conn net.Conn, command string) string {
 		p1 := players[waitingPlayer]
 		p2 := players[conn]
 
-		newGame := game.Game{
-			Player1:    p1,
-			Player2:    p2,
-			CurrPlayer: 1,
-			Phase:      "PLACING",
-		}
-
-		games[&newGame] = [2]net.Conn{waitingPlayer, conn}
+		newGame := game.NewGame(p1, p2)
+		games[newGame] = [2]net.Conn{waitingPlayer, conn}
 
 		// Notify both players
 		waitingPlayer.Write([]byte("[GAME_START] - Match found! vs " + p2.Name + "\n"))
 		conn.Write([]byte("[GAME_START] - Match found! vs " + p1.Name + "\n"))
+
+		display1 := captureDisplayForPlayer(newGame, waitingPlayer)
+		display2 := captureDisplayForPlayer(newGame, conn)
+
+		waitingPlayer.Write([]byte("DISPLAY_UPDATE\n" + display1 + "END_DISPLAY\n"))
+		conn.Write([]byte("DISPLAY_UPDATE\n" + display2 + "END_DISPLAY\n"))
 
 		// Reset waiting player
 		waitingPlayer = nil
