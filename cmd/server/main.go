@@ -141,6 +141,10 @@ func handleCommand(conn net.Conn, command string) string {
 			// First player waiting
 			waitingPlayer = conn
 			return "[WAITING] - Looking for opponent..."
+		}
+
+		if conn == waitingPlayer {
+			return "[WAITING] - Looking for opponent..."
 		} else {
 			p1 := players[waitingPlayer]
 			p2 := players[conn]
