@@ -8,6 +8,8 @@ import (
 	"net"
 	"os"
 	"strings"
+
+	"github.com/ahmaruff/go-fleet/internal/display"
 )
 
 func main() {
@@ -53,6 +55,13 @@ func main() {
 			break
 		}
 
+		if message == "/quit" {
+			break
+		}
+
+		if message == "/exit" {
+			break
+		}
 		_, err := conn.Write([]byte(message + "\n"))
 		if err != nil {
 			log.Println("[ERROR] - Failed to send message:", err)
@@ -82,7 +91,7 @@ func listenForMessages(conn net.Conn) {
 			inDisplayMode = false
 
 			// Clear screen and show the game board
-			fmt.Print("\033[2J\033[H") // Clear screen
+			display.ClearScreen()
 			fmt.Print(displayBuffer.String())
 			fmt.Print("\nEnter command: ")
 			continue
@@ -94,6 +103,8 @@ func listenForMessages(conn net.Conn) {
 		}
 
 		// Regular server messages
+
+		display.ClearScreen()
 		fmt.Printf("\n# %s\n", line)
 		fmt.Print("Enter command: ")
 	}
