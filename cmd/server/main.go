@@ -117,6 +117,11 @@ func handleCommand(conn net.Conn, command string) string {
 		if len(parts) < 2 {
 			return "[ERROR] - Usage: /name YourName"
 		}
+
+		if _, exists := players[conn]; exists {
+			return "[ERROR] - You already have a name set. You can't change it."
+		}
+
 		playerName := strings.Join(parts[1:], " ")
 
 		// Create Player object
@@ -145,28 +150,34 @@ func handleCommand(conn net.Conn, command string) string {
 
 		if conn == waitingPlayer {
 			return "[WAITING] - Looking for opponent..."
-		} else {
-			p1 := players[waitingPlayer]
-			p2 := players[conn]
-
-			newGame := game.Game{
-				Player1:    p1,
-				Player2:    p2,
-				CurrPlayer: 1,
-				Phase:      "PLACING",
-			}
-
-			games[&newGame] = [2]net.Conn{waitingPlayer, conn}
-
-			// Notify both players
-			waitingPlayer.Write([]byte("[GAME_START] - Match found! vs " + p2.Name + "\n"))
-			conn.Write([]byte("[GAME_START] - Match found! vs " + p1.Name + "\n"))
-
-			// Reset waiting player
-			waitingPlayer = nil
-
-			return ""
 		}
+
+		currentGame := findGameByConnection(conn)
+
+		if currentGame != nil {
+			return "[ERROR] - You are already in game, unable to use /ready command, use /set or /fire"
+		}
+
+		p1 := players[waitingPlayer]
+		p2 := players[conn]
+
+		newGame := game.Game{
+			Player1:    p1,
+			Player2:    p2,
+			CurrPlayer: 1,
+			Phase:      "PLACING",
+		}
+
+		games[&newGame] = [2]net.Conn{waitingPlayer, conn}
+
+		// Notify both players
+		waitingPlayer.Write([]byte("[GAME_START] - Match found! vs " + p2.Name + "\n"))
+		conn.Write([]byte("[GAME_START] - Match found! vs " + p1.Name + "\n"))
+
+		// Reset waiting player
+		waitingPlayer = nil
+
+		return ""
 
 	case "/set":
 		if len(parts) < 2 {
@@ -230,7 +241,7 @@ func handleCommand(conn net.Conn, command string) string {
 
 		result := currentGame.FireAtOpponent(player, coordinate)
 
-		if result == -1 {
+		if result != 3 && result != 2 {
 			conn.Write([]byte("[ERROR] - Invalid shot at " + coordinate + "\n"))
 			return ""
 		}
