@@ -98,6 +98,22 @@ func listenForMessages(conn net.Conn) {
 			continue
 		}
 
+		if line == "GAME_RESET" {
+			// Clear all game state
+			effectQueue = nil
+			currentlyShowingEffect = false
+			queuedDisplay = ""
+
+			// Show ready prompt
+			display.ClearScreen()
+
+			fmt.Println("============================== GO-FLEET ==============================")
+			fmt.Println("Type '/ready' if you're ready for war or '/quit' to exit")
+			fmt.Println("======================================================================")
+			fmt.Println()
+			continue
+		}
+
 		if line == "EFFECT_UPDATE" {
 			//			fmt.Printf("[DEBUG] Starting effect mode\n")
 			inEffectMode = true

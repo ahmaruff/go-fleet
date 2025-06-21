@@ -115,6 +115,24 @@ func handleClient(conn net.Conn) {
 		n, err := conn.Read(buffer)
 		if err != nil {
 			fmt.Println("[SERVER] Client disconnected")
+
+			currentGame := findGameByConnection(conn)
+			if currentGame != nil {
+				// Get connections BEFORE deleting
+				connections := games[currentGame]
+
+				// Remove game from tracking
+				delete(games, currentGame)
+
+				// Notify the remaining player (if still connected)
+				for _, connection := range connections {
+					if connection != conn { // Don't send to disconnected player
+						connection.Write([]byte("OPPONENT_DISCONNECTED\n"))
+						connection.Write([]byte("GAME_RESET\n"))
+					}
+				}
+			}
+
 			return
 		}
 
@@ -352,6 +370,13 @@ func handleCommand(conn net.Conn, command string) string {
 			connections[1].Write([]byte("======================================\n"))
 			connections[1].Write([]byte("[GAME_OVER] - " + winnerName + " wins!\n"))
 			connections[1].Write([]byte("======================================\n"))
+
+			// CLEANUP: Remove game from tracking
+			delete(games, currentGame)
+
+			// Send reset messages to both players
+			connections[0].Write([]byte("GAME_RESET\n"))
+			connections[1].Write([]byte("GAME_RESET\n"))
 		}
 
 		return response
