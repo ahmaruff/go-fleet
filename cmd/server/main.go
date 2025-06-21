@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/ahmaruff/go-fleet/internal/display"
+	"github.com/ahmaruff/go-fleet/internal/effects"
 	"github.com/ahmaruff/go-fleet/internal/game"
 )
 
@@ -66,6 +67,13 @@ func captureDisplayForPlayer(gameInstance *game.Game, playerConn net.Conn) strin
 
 func main() {
 	display.ClearScreen()
+
+	welcomeEffect := effects.GetEffect("WELCOME")
+
+	fmt.Println()
+	fmt.Printf("%s", welcomeEffect)
+	fmt.Println()
+	fmt.Println()
 
 	// Command line flag for port
 	port := flag.String("port", "8080", "Port to listen on")
@@ -144,6 +152,10 @@ func handleCommand(conn net.Conn, command string) string {
 		// Store player for this connection
 		players[conn] = player
 
+		welcomeEffect := effects.GetEffect("WELCOME")
+
+		conn.Write([]byte("EFFECT_UPDATE\n" + welcomeEffect + "\nEFFECT_END\n"))
+
 		return "[NAME_SET] - Welcome " + playerName + "!"
 	case "/ready":
 		player := players[conn]
@@ -155,10 +167,18 @@ func handleCommand(conn net.Conn, command string) string {
 		if waitingPlayer == nil {
 			// First player waiting
 			waitingPlayer = conn
+			// Send waiting effect
+			effectOutput := effects.GetEffect("WAITING")
+			conn.Write([]byte("\nEFFECT_UPDATE\n" + effectOutput + "\nEFFECT_END\n"))
 			return "[WAITING] - Looking for opponent..."
 		}
 
 		if conn == waitingPlayer {
+
+			// Send waiting effect
+			effectOutput := effects.GetEffect("WAITING")
+			conn.Write([]byte("EFFECT_UPDATE\n" + effectOutput + "\nEFFECT_END\n"))
+
 			return "[WAITING] - Looking for opponent..."
 		}
 
@@ -177,6 +197,11 @@ func handleCommand(conn net.Conn, command string) string {
 		// Notify both players
 		waitingPlayer.Write([]byte("[GAME_START] - Match found! vs " + p2.Name + "\n"))
 		conn.Write([]byte("[GAME_START] - Match found! vs " + p1.Name + "\n"))
+
+		// effect match found
+		matchEffect := effects.GetEffect("MATCH_FOUND")
+		waitingPlayer.Write([]byte("EFFECT_UPDATE\n" + matchEffect + "\nEFFECT_END\n"))
+		conn.Write([]byte("EFFECT_UPDATE\n" + matchEffect + "\nEFFECT_END\n"))
 
 		display1 := captureDisplayForPlayer(newGame, waitingPlayer)
 		display2 := captureDisplayForPlayer(newGame, conn)
@@ -212,11 +237,10 @@ func handleCommand(conn net.Conn, command string) string {
 			return "[ERROR] - Cannot place ship at " + coordinate
 		}
 
-		// Send display update to the player who placed the ship
-		displayOutput := captureDisplayForPlayer(currentGame, conn)
-		conn.Write([]byte("DISPLAY_UPDATE\n" + displayOutput + "END_DISPLAY\n"))
-
-		response := fmt.Sprintf("[SHIP_PLACED] - Ship placed at %s (%d/5)", coordinate, getCurrentPlayerShips(currentGame, conn))
+		if player.Board.ShipCount > 4 {
+			vesselReadyEffect := effects.GetEffect("ALL_SHIPS_READY")
+			conn.Write([]byte("EFFECT_UPDATE\n" + vesselReadyEffect + "\nEFFECT_END\n"))
+		}
 
 		if currentGame.Phase == "PLAYING" {
 			// Both players have 5 ships, game started!
@@ -224,12 +248,23 @@ func handleCommand(conn net.Conn, command string) string {
 			connections[0].Write([]byte("[COMBAT_START] - All ships placed! Combat phase begins!\n"))
 			connections[1].Write([]byte("[COMBAT_START] - All ships placed! Combat phase begins!\n"))
 
+			battleStartEffect := effects.GetEffect("BATTLE_START")
+			connections[0].Write([]byte("EFFECT_UPDATE\n" + battleStartEffect + "\nEFFECT_END\n"))
+			connections[1].Write([]byte("EFFECT_UPDATE\n" + battleStartEffect + "\nEFFECT_END\n"))
+
 			// Send display update to both players when combat starts
 			display1 := captureDisplayForPlayer(currentGame, connections[0])
 			display2 := captureDisplayForPlayer(currentGame, connections[1])
+
 			connections[0].Write([]byte("DISPLAY_UPDATE\n" + display1 + "END_DISPLAY\n"))
 			connections[1].Write([]byte("DISPLAY_UPDATE\n" + display2 + "END_DISPLAY\n"))
+		} else {
+			// Normal ship placement - send display only to current player
+			displayOutput := captureDisplayForPlayer(currentGame, conn)
+			conn.Write([]byte("DISPLAY_UPDATE\n" + displayOutput + "END_DISPLAY\n"))
 		}
+
+		response := fmt.Sprintf("[SHIP_PLACED] - Ship placed at %s (%d/5)", coordinate, getCurrentPlayerShips(currentGame, conn))
 
 		return response
 	case "/fire":
@@ -273,8 +308,11 @@ func handleCommand(conn net.Conn, command string) string {
 		}
 
 		resultMsg := fireMsg[result]
-
 		response := fmt.Sprintf("[SHOT_RESULT] - %s at %s", resultMsg, coordinate)
+
+		fireEffect := effects.GetEffect(resultMsg)
+		connections[0].Write([]byte("EFFECT_UPDATE\n" + fireEffect + "\nEFFECT_END\n"))
+		connections[1].Write([]byte("EFFECT_UPDATE\n" + fireEffect + "\nEFFECT_END\n"))
 
 		display1 := captureDisplayForPlayer(currentGame, connections[0])
 		display2 := captureDisplayForPlayer(currentGame, connections[1])
@@ -284,14 +322,28 @@ func handleCommand(conn net.Conn, command string) string {
 
 		// Check if game is over
 		winner, gameOver := currentGame.IsGameOver()
+
+		defeatIndex := 0
+		winnerIndex := 1
 		if gameOver {
 			connections := games[currentGame]
 			winnerName := ""
 			if winner == 1 {
 				winnerName = currentGame.Player1.Name
+				winnerIndex = 0
+				defeatIndex = 1
 			} else {
 				winnerName = currentGame.Player2.Name
+
+				winnerIndex = 1
+				defeatIndex = 0
 			}
+
+			victoryEffect := effects.GetEffect("VICTORY")
+			defeatEffect := effects.GetEffect("DEFEAT")
+
+			connections[winnerIndex].Write([]byte("EFFECT_UPDATE\n" + victoryEffect + "\nEFFECT_END\n"))
+			connections[defeatIndex].Write([]byte("EFFECT_UPDATE\n" + defeatEffect + "\nEFFECT_END\n"))
 
 			connections[0].Write([]byte("======================================\n"))
 			connections[0].Write([]byte("[GAME_OVER] - " + winnerName + " wins!\n"))

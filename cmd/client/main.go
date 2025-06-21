@@ -8,12 +8,19 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/ahmaruff/go-fleet/internal/display"
+	"github.com/ahmaruff/go-fleet/internal/effects"
 )
 
 func main() {
 	display.ClearScreen()
+	welcomeEffect := effects.GetEffect("WELCOME")
+
+	fmt.Println()
+	fmt.Printf("%s\n", welcomeEffect)
+	fmt.Println()
 
 	// Command line flags
 	host := flag.String("host", "localhost", "Server host")
@@ -44,15 +51,18 @@ func main() {
 		log.Fatal("[ERROR] - Failed to send name:", err)
 	}
 
+	// Start listening for server messages
+	go listenForMessages(conn)
+
+	// Small delay to let server response come through
+	time.Sleep(100 * time.Millisecond)
+
 	display.ClearScreen()
 
 	fmt.Println("============================== GO-FLEET ==============================")
 	fmt.Println("Type '/ready' if you're ready for war or '/quit' to exit")
 	fmt.Println("======================================================================")
 	fmt.Println()
-
-	// Start listening for server messages
-	go listenForMessages(conn)
 
 	// Continue with existing input loop...
 	for scanner.Scan() {
@@ -69,13 +79,46 @@ func main() {
 	}
 }
 
+var effectQueue []string
+var currentlyShowingEffect bool
+var queuedDisplay string
+
 func listenForMessages(conn net.Conn) {
 	scanner := bufio.NewScanner(conn)
 	var displayBuffer strings.Builder
+	var effectBuffer strings.Builder
+
 	inDisplayMode := false
+	inEffectMode := false
 
 	for scanner.Scan() {
 		line := scanner.Text()
+
+		if line == "\n" {
+			continue
+		}
+
+		if line == "EFFECT_UPDATE" {
+			//			fmt.Printf("[DEBUG] Starting effect mode\n")
+			inEffectMode = true
+			effectBuffer.Reset()
+			continue
+		}
+
+		if line == "EFFECT_END" {
+			inEffectMode = false
+			effectQueue = append(effectQueue, effectBuffer.String())
+
+			if !currentlyShowingEffect {
+				showNextEffect()
+			}
+			continue
+		}
+
+		if inEffectMode {
+			effectBuffer.WriteString(line + "\n")
+			continue
+		}
 
 		if line == "DISPLAY_UPDATE" {
 			inDisplayMode = true
@@ -85,9 +128,14 @@ func listenForMessages(conn net.Conn) {
 
 		if line == "END_DISPLAY" {
 			inDisplayMode = false
+			queuedDisplay = displayBuffer.String()
 
-			display.ClearScreen()
-			fmt.Print(displayBuffer.String())
+			// If no effects are showing, display immediately
+			if !currentlyShowingEffect {
+				display.ClearScreen()
+				fmt.Print(queuedDisplay)
+				queuedDisplay = ""
+			}
 			continue
 		}
 
@@ -96,7 +144,35 @@ func listenForMessages(conn net.Conn) {
 			continue
 		}
 
-		// Regular server messages - NO screen clearing
-		fmt.Printf("%s\n", line)
+		// Regular server messages
+		if !currentlyShowingEffect {
+			fmt.Printf("%s\n", line)
+		}
 	}
+}
+
+func showNextEffect() {
+	if len(effectQueue) == 0 {
+		currentlyShowingEffect = false
+		// Show queued display if available
+		if queuedDisplay != "" {
+			display.ClearScreen()
+			fmt.Print(queuedDisplay)
+			queuedDisplay = ""
+		}
+		return
+	}
+
+	currentlyShowingEffect = true
+	effect := effectQueue[0]
+	effectQueue = effectQueue[1:] // Remove first effect
+
+	display.ClearScreen()
+	fmt.Print(effect)
+
+	// Timer to show next effect
+	go func() {
+		time.Sleep(3 * time.Second)
+		showNextEffect() // Recursively show next effect
+	}()
 }
