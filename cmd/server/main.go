@@ -45,10 +45,18 @@ func captureDisplayForPlayer(gameInstance *game.Game, playerConn net.Conn) strin
 		playerGame = gameInstance
 	} else {
 		// Player 2's perspective - swap players so they see themselves as "Player1"
+
+		swappedCurrPlayer := gameInstance.CurrPlayer
+		if swappedCurrPlayer == 1 {
+			swappedCurrPlayer = 2
+		} else {
+			swappedCurrPlayer = 1
+		}
+
 		playerGame = &game.Game{
 			Player1:    gameInstance.Player2, // They see themselves as Player1
 			Player2:    gameInstance.Player1, // Opponent as Player2
-			CurrPlayer: gameInstance.CurrPlayer,
+			CurrPlayer: swappedCurrPlayer,
 			Phase:      gameInstance.Phase,
 		}
 	}
@@ -57,6 +65,8 @@ func captureDisplayForPlayer(gameInstance *game.Game, playerConn net.Conn) strin
 }
 
 func main() {
+	display.ClearScreen()
+
 	// Command line flag for port
 	port := flag.String("port", "8080", "Port to listen on")
 	flag.Parse()
@@ -236,6 +246,17 @@ func handleCommand(conn net.Conn, command string) string {
 			return "[ERROR] - Not in combat phase"
 		}
 
+		connections := games[currentGame]
+		isPlayer1 := connections[0] == conn
+		playerNumber := 1
+		if !isPlayer1 {
+			playerNumber = 2
+		}
+
+		if currentGame.CurrPlayer != playerNumber {
+			return "[ERROR] - Not your turn! Wait for opponent to fire."
+		}
+
 		player := players[conn]
 		coordinate := parts[1]
 
@@ -255,9 +276,9 @@ func handleCommand(conn net.Conn, command string) string {
 
 		response := fmt.Sprintf("[SHOT_RESULT] - %s at %s", resultMsg, coordinate)
 
-		connections := games[currentGame]
 		display1 := captureDisplayForPlayer(currentGame, connections[0])
 		display2 := captureDisplayForPlayer(currentGame, connections[1])
+
 		connections[0].Write([]byte("DISPLAY_UPDATE\n" + display1 + "END_DISPLAY\n"))
 		connections[1].Write([]byte("DISPLAY_UPDATE\n" + display2 + "END_DISPLAY\n"))
 

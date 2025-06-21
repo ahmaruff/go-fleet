@@ -13,6 +13,8 @@ import (
 )
 
 func main() {
+	display.ClearScreen()
+
 	// Command line flags
 	host := flag.String("host", "localhost", "Server host")
 	port := flag.String("port", "8080", "Server port")
@@ -42,7 +44,12 @@ func main() {
 		log.Fatal("[ERROR] - Failed to send name:", err)
 	}
 
-	fmt.Println(">> Type commands (/ready, /set A1, /fire B2) or 'quit' to exit:")
+	display.ClearScreen()
+
+	fmt.Println("============================== GO-FLEET ==============================")
+	fmt.Println("Type '/ready' if you're ready for war or '/quit' to exit")
+	fmt.Println("======================================================================")
+	fmt.Println()
 
 	// Start listening for server messages
 	go listenForMessages(conn)

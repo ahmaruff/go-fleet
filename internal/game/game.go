@@ -53,6 +53,10 @@ func (g *Game) FireAtOpponent(firingPlayer *Player, cell string) int {
 		return -1
 	}
 
+	if g.Phase == "PLAYING" {
+		g.SwitchPlayer()
+	}
+
 	res := opponent.Board.Fire(row, col)
 
 	_, gameOver := g.IsGameOver()

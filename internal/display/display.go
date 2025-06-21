@@ -37,10 +37,26 @@ func ConvertCellToChar(cellValue int) string {
 func RenderGame(g *game.Game) {
 	ClearScreen()
 
+	isMyTurn := (g.CurrPlayer == 1)
+	turnText := "Opponent's Turn"
+	if isMyTurn {
+
+		turnText = "Your Turn"
+	}
+
 	// Game header
 	fmt.Println("===================================== GO-FLEET ==============================")
-	fmt.Printf("Player: %s vs %s | Phase: %s | Current Turn: Player %d\n",
-		g.Player1.Name, g.Player2.Name, g.Phase, g.CurrPlayer)
+
+	if g.Phase == "PLAYING" {
+		fmt.Printf("Player: %s vs %s | Phase: %s | Current Turn: %s\n",
+			g.Player1.Name, g.Player2.Name, g.Phase, turnText)
+	} else {
+		fmt.Printf("Player: %s vs %s | Phase: %s\n",
+			g.Player1.Name, g.Player2.Name, g.Phase)
+	}
+
+	fmt.Printf("Player: %s vs %s | Phase: %s | Current Turn: %s\n",
+		g.Player1.Name, g.Player2.Name, g.Phase, turnText)
 	fmt.Println("=============================================================================")
 
 	// legends
@@ -78,15 +94,39 @@ func RenderGame(g *game.Game) {
 		}
 		fmt.Println()
 	}
+
+	fmt.Println()
+
+	if g.Phase == "PLACING" {
+		fmt.Println("Command: /set A1 — place your ship at A1")
+	}
+
+	if g.Phase == "PLAYING" {
+		fmt.Println("Command: /fire B2 — fire at B2")
+	}
 }
 
 func RenderGameAsString(g *game.Game) string {
+	isMyTurn := (g.CurrPlayer == 1)
+	turnText := "Opponent's Turn"
+	if isMyTurn {
+
+		turnText = "Your Turn"
+	}
+
 	var output strings.Builder
 
 	// Game header
 	output.WriteString("============================== GO-FLEET ==============================\n")
-	output.WriteString(fmt.Sprintf("Player: %s vs %s | Phase: %s | Current Turn: Player %d\n",
-		g.Player1.Name, g.Player2.Name, g.Phase, g.CurrPlayer))
+
+	if g.Phase == "PLAYING" {
+		output.WriteString(fmt.Sprintf("Player: %s vs %s | Phase: %s | Current Turn: %s\n",
+			g.Player1.Name, g.Player2.Name, g.Phase, turnText))
+	} else {
+		output.WriteString(fmt.Sprintf("Player: %s vs %s | Phase: %s\n",
+			g.Player1.Name, g.Player2.Name, g.Phase))
+	}
+
 	output.WriteString("======================================================================\n")
 
 	// legends
@@ -125,7 +165,15 @@ func RenderGameAsString(g *game.Game) string {
 		output.WriteString("\n")
 	}
 
-	output.WriteString("\nCommands: /ready, /set A1, /fire B2\n")
+	output.WriteString("\n")
+
+	if g.Phase == "PLACING" {
+		output.WriteString("Command: /set A1 — place your ship at A1\n")
+	}
+
+	if g.Phase == "PLAYING" {
+		output.WriteString("Command: /fire B2 — fire at B2\n")
+	}
 
 	return output.String()
 }
