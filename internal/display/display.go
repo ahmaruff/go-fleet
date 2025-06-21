@@ -2,39 +2,35 @@ package display
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
-	"runtime"
 	"strings"
 
 	"github.com/ahmaruff/go-fleet/internal/game"
 )
 
+const (
+	Reset  string = "\033[0m"
+	Blue   string = "\033[34m"
+	Green  string = "\033[32m"
+	Red    string = "\033[31m"
+	Yellow string = "\033[33m"
+)
+
 func ClearScreen() {
-	switch runtime.GOOS {
-	case "windows":
-		cmd := exec.Command("cmd", "/c", "cls") // Windows
-		cmd.Stdout = os.Stdout
-		cmd.Run()
-	default:
-		cmd := exec.Command("clear") // Unix-based systems
-		cmd.Stdout = os.Stdout
-		cmd.Run()
-	}
+	fmt.Print("\033[2J\033[H")
 }
 
-func ConvertCellToChar(cellValue int) rune {
+func ConvertCellToChar(cellValue int) string {
 	switch cellValue {
 	case 0:
-		return '~' // Empty water
+		return Blue + "~" + Reset // Water
 	case 1:
-		return 'S' // Ship (not hit)
+		return Green + "S" + Reset // Ship (not hit)
 	case 2:
-		return 'O' // Miss
+		return Yellow + "O" + Reset // Miss
 	case 3:
-		return 'X' // Hit
+		return Red + "X" + Reset // Hit
 	default:
-		return '?' // Unknown
+		return "?" // Unknown
 	}
 }
 
@@ -42,14 +38,20 @@ func RenderGame(g *game.Game) {
 	ClearScreen()
 
 	// Game header
-	fmt.Println("========================================== GO-FLEET ==========================================")
+	fmt.Println("===================================== GO-FLEET ==============================")
 	fmt.Printf("Player: %s vs %s | Phase: %s | Current Turn: Player %d\n",
 		g.Player1.Name, g.Player2.Name, g.Phase, g.CurrPlayer)
-	fmt.Println("===========================================================================================")
+	fmt.Println("=============================================================================")
+
+	// legends
+	fmt.Printf(Blue + "~" + Reset + " = Water | " + Green + "S" + Reset + " = Ship | " + Red + "X" + Reset + " = Hit | " + Yellow + "O" + Reset + " = Miss\n")
+
+	fmt.Println("-----------------------------------------------------------------------------")
+	fmt.Println()
 
 	// Board headers
 	fmt.Println("Your Board:                               Opponent's Board:")
-	fmt.Println("     A B C D E F G H I J                        A B C D E F G H I J")
+	fmt.Println("   A B C D E F G H I J                        A B C D E F G H I J")
 
 	// Render both boards side by side
 	for row := 0; row < 10; row++ {
@@ -57,7 +59,7 @@ func RenderGame(g *game.Game) {
 		fmt.Printf("%2d", row+1)
 		for col := 0; col < 10; col++ {
 			char := ConvertCellToChar(g.Player1.Board.Grid[row][col])
-			fmt.Printf(" %c", char) // Space before each character
+			fmt.Printf(" %s", char) // Space before each character
 		}
 
 		// Spacing between boards
@@ -69,9 +71,9 @@ func RenderGame(g *game.Game) {
 			cellValue := g.Player2.Board.Grid[row][col]
 			if cellValue == 2 || cellValue == 3 { // only render when HIT/MISS
 				char := ConvertCellToChar(cellValue)
-				fmt.Printf(" %c", char)
+				fmt.Printf(" %s", char)
 			} else {
-				fmt.Printf(" ~") // Consistent spacing
+				fmt.Printf(Blue + " ~" + Reset) // Consistent spacing
 			}
 		}
 		fmt.Println()
@@ -82,14 +84,19 @@ func RenderGameAsString(g *game.Game) string {
 	var output strings.Builder
 
 	// Game header
-	output.WriteString("========================================== GO-FLEET ==========================================")
+	output.WriteString("============================== GO-FLEET ==============================\n")
 	output.WriteString(fmt.Sprintf("Player: %s vs %s | Phase: %s | Current Turn: Player %d\n",
 		g.Player1.Name, g.Player2.Name, g.Phase, g.CurrPlayer))
-	output.WriteString("===========================================================================================")
+	output.WriteString("======================================================================\n")
+
+	// legends
+	output.WriteString(Blue + "~" + Reset + " = Water | " + Green + "S" + Reset + " = Ship | " + Red + "X" + Reset + " = Hit | " + Yellow + "O" + Reset + " = Miss\n")
+
+	output.WriteString("----------------------------------------------------------------------\n\n")
 
 	// Board headers
-	output.WriteString("Your Board:                               Opponent's Board:")
-	output.WriteString("     A B C D E F G H I J                        A B C D E F G H I J\n")
+	output.WriteString("Your Board:                               Opponent's Board:\n")
+	output.WriteString("   A B C D E F G H I J                        A B C D E F G H I J\n")
 
 	// Render both boards side by side
 	for row := 0; row < 10; row++ {
@@ -97,7 +104,7 @@ func RenderGameAsString(g *game.Game) string {
 		output.WriteString(fmt.Sprintf("%2d", row+1))
 		for col := 0; col < 10; col++ {
 			char := ConvertCellToChar(g.Player1.Board.Grid[row][col])
-			output.WriteString(fmt.Sprintf(" %c", char)) // Space before each character
+			output.WriteString(fmt.Sprintf(" %s", char)) // Space before each character
 		}
 
 		// Spacing between boards
@@ -110,9 +117,9 @@ func RenderGameAsString(g *game.Game) string {
 			if cellValue == 2 || cellValue == 3 { // only render when HIT/MISS
 				char := ConvertCellToChar(cellValue)
 
-				output.WriteString(fmt.Sprintf(" %c", char)) // Space before each character
+				output.WriteString(fmt.Sprintf(" %s", char)) // Space before each character
 			} else {
-				output.WriteString(" ~") // Space before each character
+				output.WriteString(Blue + " ~" + Reset) // Space before each character
 			}
 		}
 		output.WriteString("\n")
