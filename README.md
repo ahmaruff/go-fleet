@@ -1,4 +1,13 @@
-# Go-Fleet 🚢
+```
+ $$$$$$\                   $$$$$$$$\ $$\                     $$\     
+$$  __$$\                  $$  _____|$$ |                    $$ |    
+$$ /  \__| $$$$$$\         $$ |      $$ | $$$$$$\   $$$$$$\$$$$$$\   
+$$ |$$$$\ $$  __$$\$$$$$$\ $$$$$\    $$ |$$  __$$\ $$  __$$\_$$  _|  
+$$ |\_$$ |$$ /  $$ \______|$$  __|   $$ |$$$$$$$$ |$$$$$$$$ |$$ |    
+$$ |  $$ |$$ |  $$ |       $$ |      $$ |$$   ____|$$   ____|$$ |$$\ 
+\$$$$$$  |\$$$$$$  |       $$ |      $$ |\$$$$$$$\ \$$$$$$$\ \$$$$  |
+ \______/  \______/        \__|      \__| \_______| \_______| \____/ `
+```
 
 A terminal-based multiplayer Battleship game built with Go, featuring real-time ASCII graphics and TCP networking.
 
@@ -58,7 +67,7 @@ go build -o client cmd/client/main.go
 | `/ready` | Join matchmaking queue | `/ready` |
 | `/set <coord>` | Place ship at coordinate | `/set A1` |
 | `/fire <coord>` | Fire at enemy coordinate | `/fire B3` |
-| `quit` | Exit the game | `quit` |
+| `/quit` | Exit the game | `/quit` |
 
 ## Game Flow
 
@@ -80,26 +89,35 @@ go build -o client cmd/client/main.go
 ```
 go-fleet/
 ├── cmd/
-│   ├── server/           # TCP server implementation
-│   └── client/           # Client application
+│   ├── server/
+│   │   └── main.go         # Game server handler
+│   ├── client/
+│   │   └── main.go         # Game client handler
+│   └── test/
+│       └── main.go         # Simple e2e test
 ├── internal/
-│   ├── game/             # Core game logic
-│   │   ├── board.go      # Game board and ship management
-│   │   ├── game.go       # Game state and flow control
-│   │   ├── player.go     # Player data structure
-│   │   └── coordinate.go # Coordinate conversion
-│   └── display/ 
-│       └── display.go    # Terminal UI rendering
+│   ├── game/               # Core game logic
+│   │   ├── board.go        # Game board and ship management
+│   │   ├── game.go         # Game state and flow control
+│   │   ├── player.go       # Player data structure
+│   │   └── coordinate.go   # Coordinate conversion
+│   ├── display/
+│   │   └── display.go      # Game UI rendering
+│   └── effects/
+│       └── effects.go      # ASCII Art Effect
+├── .gitignore
 ├── go.mod
+├── LICENSE
 └── README.md
 ```
 
 ## Architecture
 
-- **Server**: Manages multiple games, handles matchmaking, coordinates turns
+- **Server**: Manages multiple games, handles matchmaking, coordinates turns, sends effect game state to client
 - **Client**: Connects to server, sends commands, displays game state
 - **Game Logic**: Pure game rules independent of networking
-- **Display System**: ASCII rendering with real-time updates
+- **Display System**: Game ASCII rendering with real-time updates
+- **Effects**: ASCII Art effect for each game state
 
 ## Example Gameplay
 
@@ -133,26 +151,6 @@ Commands: /ready, /set A1, /fire B2
 | `O` | Miss (water hit) |
 
 
-## Roadmap
-
-### Planned Features
-- [ ] Turn-based enforcement (10-second timer per turn)
-- [ ] Multiple game rooms
-- [ ] Spectator mode
-- [ ] Reconnection handling
-- [ ] Game statistics
-- [ ] Ship placement validation (prevent adjacent ships)
-- [ ] Sound effects
-- [ ] Color terminal support
-
-### Possible Enhancements
-- [ ] Web interface
-- [ ] Bot opponents
-- [ ] Tournament system
-- [ ] Replay system
-- [ ] Custom ship sizes
-- [ ] Larger grid options
-
 ## Contributing
 
 1. Fork the repository
@@ -165,8 +163,3 @@ Commands: /ready, /set A1, /fire B2
 
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
 
-## Acknowledgments
-
-- Inspired by the classic Battleship board game
-- Built as a learning project for Go networking and game development
-- Thanks to the Go community for excellent documentation and examples
