@@ -64,8 +64,8 @@ func RenderGame(g *game.Game) {
 
 	fmt.Println()
 
-	fmt.Printf("Your Remaining Ship: %d \n", g.Player1.Board.ShipCount)
-	fmt.Printf("Opponent's Remaining Ship: %d \n", g.Player2.Board.ShipCount)
+	fmt.Printf("Your Remaining Ships: %d\n", g.Player1.Board.ShipCount)
+	fmt.Printf("Opponent's Remaining Ships: %d\n", g.Player2.Board.ShipCount)
 
 	fmt.Println("-----------------------------------------------------------------------------")
 	fmt.Println()
@@ -139,8 +139,8 @@ func RenderGameAsString(g *game.Game) string {
 
 	output.WriteString("\n")
 
-	output.WriteString(fmt.Sprintf("Your Remaining Ship: %d \n", g.Player1.Board.ShipCount))
-	output.WriteString(fmt.Sprintf("Opponent's Remaining Ship: %d \n", g.Player2.Board.ShipCount))
+	output.WriteString(fmt.Sprintf("Your Remaining Ships: %d\n", g.Player1.Board.ShipCount))
+	output.WriteString(fmt.Sprintf("Opponent's Remaining Ships: %d\n", g.Player2.Board.ShipCount))
 
 	output.WriteString("----------------------------------------------------------------------\n\n")
 
