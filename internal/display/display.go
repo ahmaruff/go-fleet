@@ -62,6 +62,11 @@ func RenderGame(g *game.Game) {
 	// legends
 	fmt.Printf(Blue + "~" + Reset + " = Water | " + Green + "S" + Reset + " = Ship | " + Red + "X" + Reset + " = Hit | " + Yellow + "O" + Reset + " = Miss\n")
 
+	fmt.Println()
+
+	fmt.Printf("Your Remaining Ship: %d \n", g.Player1.Board.ShipCount)
+	fmt.Printf("Opponent's Remaining Ship: %d \n", g.Player2.Board.ShipCount)
+
 	fmt.Println("-----------------------------------------------------------------------------")
 	fmt.Println()
 
@@ -131,6 +136,11 @@ func RenderGameAsString(g *game.Game) string {
 
 	// legends
 	output.WriteString(Blue + "~" + Reset + " = Water | " + Green + "S" + Reset + " = Ship | " + Red + "X" + Reset + " = Hit | " + Yellow + "O" + Reset + " = Miss\n")
+
+	output.WriteString("\n")
+
+	output.WriteString(fmt.Sprintf("Your Remaining Ship: %d \n", g.Player1.Board.ShipCount))
+	output.WriteString(fmt.Sprintf("Opponent's Remaining Ship: %d \n", g.Player2.Board.ShipCount))
 
 	output.WriteString("----------------------------------------------------------------------\n\n")
 
