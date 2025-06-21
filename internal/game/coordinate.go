@@ -1,17 +1,20 @@
 package game
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"unicode"
 )
 
-func ConvertCell(cell string) (int, int) {
-	cell = strings.ToUpper(cell)
+func ConvertCell(cell string) (int, int, error) {
+	cell = strings.ToUpper(strings.TrimSpace(cell))
+	if len(cell) < 2 {
+		return -1, -1, errors.New("Invalid coordinate cell input")
+	}
 
 	// example: cell = AB41;
 	// so this is separating "AB" (column) and "41" (row)
-
 	var letterPart, numberPart string
 	for _, ch := range cell {
 		if unicode.IsLetter(ch) {
@@ -19,6 +22,10 @@ func ConvertCell(cell string) (int, int) {
 		} else if unicode.IsDigit(ch) {
 			numberPart += string(ch)
 		}
+	}
+
+	if letterPart == "" || numberPart == "" {
+		return -1, -1, errors.New("invalid format: expected letter(s) followed by number")
 	}
 
 	col := 0
@@ -39,8 +46,8 @@ func ConvertCell(cell string) (int, int) {
 
 	// Validate range
 	if row < 0 || row > 9 || col < 0 || col > 9 {
-		return -1, -1 // Invalid coordinate
+		return -1, -1, errors.New("Invalid coordinate")
 	}
 
-	return row, col
+	return row, col, nil
 }

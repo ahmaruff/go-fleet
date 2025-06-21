@@ -226,6 +226,11 @@ func handleCommand(conn net.Conn, command string) string {
 
 		result := currentGame.FireAtOpponent(player, coordinate)
 
+		if result == -1 {
+			conn.Write([]byte("[ERROR] - Invalid shot at " + coordinate + "\n"))
+			return ""
+		}
+
 		fireMsg := map[int]string{
 			3: "HIT",
 			2: "MISS",

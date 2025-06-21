@@ -24,7 +24,11 @@ func NewGame(p1, p2 *Player) *Game {
 }
 
 func (g *Game) PlaceShipForPlayer(p *Player, cell string) bool {
-	row, col := ConvertCell(cell)
+	row, col, err := ConvertCell(cell)
+	if err != nil {
+		return false
+	}
+
 	res := p.Board.PlaceShip(row, col)
 
 	if g.Player1.Board.ShipCount == 5 && g.Player2.Board.ShipCount == 5 {
@@ -43,7 +47,12 @@ func (g *Game) FireAtOpponent(firingPlayer *Player, cell string) int {
 		opponent = g.Player1
 	}
 
-	row, col := ConvertCell(cell)
+	row, col, err := ConvertCell(cell)
+
+	if err != nil {
+		return -1
+	}
+
 	res := opponent.Board.Fire(row, col)
 
 	_, gameOver := g.IsGameOver()
