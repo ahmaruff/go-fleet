@@ -98,6 +98,28 @@ func listenForMessages(conn net.Conn) {
 			continue
 		}
 
+		if line == "OPPONENT_DISCONNECTED" {
+			// Clear all game state
+			effectQueue = nil
+			currentlyShowingEffect = false
+			queuedDisplay = ""
+
+			fmt.Println("---------------------")
+			fmt.Println("Opponent Disconected!")
+			fmt.Println("---------------------")
+
+			time.Sleep(3 * time.Second)
+
+			// Show ready prompt
+			display.ClearScreen()
+
+			fmt.Println("============================== GO-FLEET ==============================")
+			fmt.Println("Type '/ready' if you're ready for war or '/quit' to exit")
+			fmt.Println("======================================================================")
+			fmt.Println()
+			continue
+		}
+
 		if line == "GAME_RESET" {
 			// Clear all game state
 			effectQueue = nil

@@ -128,7 +128,6 @@ func handleClient(conn net.Conn) {
 				for _, connection := range connections {
 					if connection != conn { // Don't send to disconnected player
 						connection.Write([]byte("OPPONENT_DISCONNECTED\n"))
-						connection.Write([]byte("GAME_RESET\n"))
 					}
 				}
 			}
@@ -192,7 +191,6 @@ func handleCommand(conn net.Conn, command string) string {
 		}
 
 		if conn == waitingPlayer {
-
 			// Send waiting effect
 			effectOutput := effects.GetEffect("WAITING")
 			conn.Write([]byte("EFFECT_UPDATE\n" + effectOutput + "\nEFFECT_END\n"))
@@ -267,8 +265,11 @@ func handleCommand(conn net.Conn, command string) string {
 			connections[1].Write([]byte("[COMBAT_START] - All ships placed! Combat phase begins!\n"))
 
 			battleStartEffect := effects.GetEffect("BATTLE_START")
-			connections[0].Write([]byte("EFFECT_UPDATE\n" + battleStartEffect + "\nEFFECT_END\n"))
-			connections[1].Write([]byte("EFFECT_UPDATE\n" + battleStartEffect + "\nEFFECT_END\n"))
+			if conn == connections[0] {
+				connections[1].Write([]byte("EFFECT_UPDATE\n" + battleStartEffect + "\nEFFECT_END\n"))
+			} else {
+				connections[0].Write([]byte("EFFECT_UPDATE\n" + battleStartEffect + "\nEFFECT_END\n"))
+			}
 
 			// Send display update to both players when combat starts
 			display1 := captureDisplayForPlayer(currentGame, connections[0])
@@ -360,9 +361,6 @@ func handleCommand(conn net.Conn, command string) string {
 			victoryEffect := effects.GetEffect("VICTORY")
 			defeatEffect := effects.GetEffect("DEFEAT")
 
-			connections[winnerIndex].Write([]byte("EFFECT_UPDATE\n" + victoryEffect + "\nEFFECT_END\n"))
-			connections[defeatIndex].Write([]byte("EFFECT_UPDATE\n" + defeatEffect + "\nEFFECT_END\n"))
-
 			connections[0].Write([]byte("======================================\n"))
 			connections[0].Write([]byte("[GAME_OVER] - " + winnerName + " wins!\n"))
 			connections[0].Write([]byte("======================================\n"))
@@ -370,6 +368,9 @@ func handleCommand(conn net.Conn, command string) string {
 			connections[1].Write([]byte("======================================\n"))
 			connections[1].Write([]byte("[GAME_OVER] - " + winnerName + " wins!\n"))
 			connections[1].Write([]byte("======================================\n"))
+
+			connections[winnerIndex].Write([]byte("EFFECT_UPDATE\n" + victoryEffect + "\nEFFECT_END\n"))
+			connections[defeatIndex].Write([]byte("EFFECT_UPDATE\n" + defeatEffect + "\nEFFECT_END\n"))
 
 			// CLEANUP: Remove game from tracking
 			delete(games, currentGame)
