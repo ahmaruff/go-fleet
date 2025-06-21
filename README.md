@@ -1,12 +1,10 @@
 ```
- $$$$$$\                   $$$$$$$$\ $$\                     $$\     
-$$  __$$\                  $$  _____|$$ |                    $$ |    
-$$ /  \__| $$$$$$\         $$ |      $$ | $$$$$$\   $$$$$$\$$$$$$\   
-$$ |$$$$\ $$  __$$\$$$$$$\ $$$$$\    $$ |$$  __$$\ $$  __$$\_$$  _|  
-$$ |\_$$ |$$ /  $$ \______|$$  __|   $$ |$$$$$$$$ |$$$$$$$$ |$$ |    
-$$ |  $$ |$$ |  $$ |       $$ |      $$ |$$   ____|$$   ____|$$ |$$\ 
-\$$$$$$  |\$$$$$$  |       $$ |      $$ |\$$$$$$$\ \$$$$$$$\ \$$$$  |
- \______/  \______/        \__|      \__| \_______| \_______| \____/ `
+ ██████╗  ██████╗       ███████╗██╗     ███████╗███████╗████████╗
+██╔════╝ ██╔═══██╗      ██╔════╝██║     ██╔════╝██╔════╝╚══██╔══╝
+██║  ███╗██║   ██║█████╗█████╗  ██║     █████╗  █████╗     ██║   
+██║   ██║██║   ██║╚════╝██╔══╝  ██║     ██╔══╝  ██╔══╝     ██║   
+╚██████╔╝╚██████╔╝      ██║     ███████╗███████╗███████╗   ██║   
+ ╚═════╝  ╚═════╝       ╚═╝     ╚══════╝╚══════╝╚══════╝   ╚═╝   
 ```
 
 A terminal-based multiplayer Battleship game built with Go, featuring real-time ASCII graphics and TCP networking.
@@ -16,7 +14,6 @@ A terminal-based multiplayer Battleship game built with Go, featuring real-time 
 - **Multiplayer**: Real-time 1v1 gameplay over TCP
 - **Visual**: Beautiful ASCII game boards with live updates
 - **Simple Commands**: Easy-to-use command interface
-- **Cross-Platform**: Works on Windows, macOS, and Linux
 - **No Dependencies**: Uses only Go standard library
 
 ## Game Rules
@@ -25,6 +22,9 @@ A terminal-based multiplayer Battleship game built with Go, featuring real-time 
 - **Ships**: Each player places 5 single-cell ships
 - **Turns**: Players take turns firing at coordinates
 - **Win Condition**: Destroy all enemy ships to win
+
+## Demo
+<img src="./demo.gif" alt="Terminal Chat Demo" style="width: 100%;" />
 
 ## Quick Start
 
